@@ -1,6 +1,6 @@
 # Designing ahead of the curve
 
-An introduction to Framer X for d.zone.
+An introduction to Framer X
 
 This repository contains all the completed examples from the Workshop.
 - A simple component with properties
