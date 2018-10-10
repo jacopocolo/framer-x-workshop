@@ -27,8 +27,8 @@ export class VisionCanvas extends React.Component<Props> {
         visionResults: []
     };
 
-    /* Handle Mouse Up Event */
-    handleMouseUp(e) {
+    /* Handle Touch End Event */
+    handleOnTouchEnd(e) {
 
         /* Make Google API Request */ 
         const apiKey = this.props.googleApiKey;
@@ -97,7 +97,7 @@ export class VisionCanvas extends React.Component<Props> {
                 height: "100%",
                 background: "transparent",
                 userSelect: "none"
-            }} onMouseUp={this.handleMouseUp.bind(this)}>
+            }} onTouchEnd={this.handleOnTouchEnd.bind(this)}>
                 {
                     this.state.visionResults.map((element, x) => {
                             
@@ -106,9 +106,7 @@ export class VisionCanvas extends React.Component<Props> {
                              **/
                             const boundingBoxesDots = element.boundingPoly.vertices.map((vertice, i) => {
                                 
-                                console.log(vertice.description);
-                                
-                                return <div key={vertice.description} style={{
+                                return <div key={i.toString()} style={{
                                     backgroundColor: 'blue',
                                     position: 'absolute',
                                     top: vertice.y,
@@ -125,7 +123,7 @@ export class VisionCanvas extends React.Component<Props> {
                                 <div>
                                     {boundingBoxesDots}
                                     
-                                    <span key={x} style={{
+                                    <span key={x.toString()} style={{
                                         position: 'absolute',
                                         textAlign: 'center',
                                         backgroundColor: 'blue',
