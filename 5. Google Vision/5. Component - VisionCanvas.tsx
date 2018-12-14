@@ -6,15 +6,47 @@ import {
 
 /* Import Drawable Canvas Element */
 import DrawableCanvas from "react-drawable-canvas";
+import styled from "styled-components";
+
+// New Whiteboard Button (For Clearing)
+const NewWhiteBoardButton = styled.button`
+    font-family: "CiscoSansTT", sans-serif;
+    font-size: 22px;
+    color: #00C4D6;
+    position: absolute;
+    bottom: 36px;
+    left: 40px;
+    border: none;
+    background: transparent;
+    
+    :focus {
+        outline: 0;
+    }
+`;
 
 interface Props {
-    googleApiKey: string
+    googleApiKey: string,
+    touchThrottleIntervalTime: number,
 }
 
+/*
+*   The time-interval after a touchUp or mouseUp until the API request is fired for the canvas.
+*   - This allows for text to be written as individual letters (block text) before requesting handwriting recognition of the canvas.
+*/
+var touchThrottleTimer;
+
 export class VisionCanvas extends React.Component<Props> {
-    
+   
+    static defaultProps = {
+        touchThrottleInterval: 1000
+    }
+
     /* Setup Framer Property Controls */
     static propertyControls: PropertyControls = {
+        touchThrottleIntervalTime: {
+            type: ControlType.Number,
+            title: "Touch Throttle"
+        },
         googleApiKey: { 
             type: ControlType.String, 
             title: "Google API Key",
@@ -24,11 +56,19 @@ export class VisionCanvas extends React.Component<Props> {
 
     /* Set Initial State */
     state = {
-        visionResults: []
+        visionResults: [],
+        clear: false,
+        lineWidth: 4,
+        brushColor: "red",
+        canvasStyle: {
+            width: "50px"
+        },
+        isDrawing: false
     };
 
-    /* Handle Touch End Event */
-    handleOnTouchEnd(e) {
+    recogniseHandwriting() {
+
+        console.log("Recognising handwriting!");
 
         /* Make Google API Request */ 
         const apiKey = this.props.googleApiKey;
@@ -83,11 +123,47 @@ export class VisionCanvas extends React.Component<Props> {
 
                 /* Store React State with new results */
                 this.setState({
-                    visionResults: this.state.visionResults.concat({boundingPoly: last.boundingPoly, description: last.description})
+                    visionResults: this.state.visionResults.concat({boundingPoly: last.boundingPoly, description: last.description}),
+                    clear: false
                 });
             }
         })
+
         .catch(error=>console.log(error))
+    }
+
+    /* Handle Mouse Move */
+    // handleOnMouseDown() {
+    //     this.setState({isDrawing: true});
+    // }
+
+    /* Handle Touch End Event */
+    handleOnTouchEnd() {
+
+        // Request
+        this.recogniseHandwriting();
+
+        // if (this.state.isDrawing) {
+        //     console.log("starting timer");
+            
+
+        //     touchThrottleTimer = setTimeout(() => {
+        //         this.setState({isDrawing: false});
+                
+        //         // Request
+        //         this.recogniseHandwriting();
+    
+        //     }, this.props.touchThrottleIntervalTime);
+        // }
+    }
+
+    handleClickNewWhiteboard(e) {
+
+        // Clear whiteboard
+        this.setState({
+            clear: true,
+            visionResults: []
+        });
     }
 
     render() {
@@ -96,9 +172,15 @@ export class VisionCanvas extends React.Component<Props> {
                 width: "100%",
                 height: "100%",
                 background: "transparent",
-                userSelect: "none"
-            }} onTouchEnd={this.handleOnTouchEnd.bind(this)}>
-                {
+                WebkitUserSelect: "none",
+                WebkitTouchCallout: "none",
+                MozUserSelect: "none",
+                msUserSelect: "none",
+                userSelect: "none",
+                outline: "none"
+            }} onMouseDown={() => this.setState({isDrawing: true})} onMouseUp={this.handleOnTouchEnd.bind(this)}>
+            
+            {
                     this.state.visionResults.map((element, x) => {
                             
                             /**
@@ -139,7 +221,9 @@ export class VisionCanvas extends React.Component<Props> {
                 })
             }
 
-            <DrawableCanvas ref="drawableCanvas" lineWidth={4} width="100%" height="100%" />
+            <NewWhiteBoardButton onMouseUp={this.handleClickNewWhiteboard.bind(this)}>New whiteboard</NewWhiteBoardButton>
+
+            <DrawableCanvas {...this.state} ref="drawableCanvas" />
 
             </div>
         )
